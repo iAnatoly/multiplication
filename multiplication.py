@@ -146,7 +146,6 @@ stats=[];
 mmode = not getAnswer("Use division instead of multiplication? [yes|no] ");
 
 tries = getNumberWithDefault("How many tries? [please neter number] ",100);
-date = datetime.now();
 
 print "\
 Please select mode:\n\
@@ -161,6 +160,8 @@ if (modeSelection == Mode.TimeTrial or modeSelection == Mode.SPARTA):
 	timeLimit = getNumberWithDefault("Time limit (seconds)", 180);
 else:
 	timeLimit = -1;
+
+date = datetime.now();
 
 for i in range(0,tries):
 	answer = Answer(prev1,prev2,mmode);
