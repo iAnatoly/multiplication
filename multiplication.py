@@ -1,4 +1,9 @@
 #!/usr/bin/python
+#
+# (C) Copyright Anatoly Ivanov <anatoly.ivanov@gamil.com>
+# This script is free for use and redistribution in educational purposes.
+# See https://github.com/iAnatoly/multiplication/ for more info.
+#
 import random;
 import sys;
 from datetime import datetime;
