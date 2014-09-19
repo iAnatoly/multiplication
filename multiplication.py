@@ -4,6 +4,16 @@
 # This script is free for use and redistribution in educational purposes.
 # See https://github.com/iAnatoly/multiplication/ for more info.
 #
+
+# configuration:
+enableEmailStatistics=True;
+if (enableEmailStatistics):
+	sender="[YOUR ROBOT ACCOUNT]@gmail.com";
+	senderPassword="PASSWORD";
+	recipients=["PARENT1@live.com","PARENT2@gmail.com"];
+	smtpserver="smtp.gmail.com:587";
+#
+
 import random;
 import sys;
 from datetime import datetime;
@@ -11,84 +21,129 @@ try:
 	from enum import Enum;
 except:
 	import os;
-	os.system("pip install enum34");
+	cmd = "sudo pip install enum34";
+	print "Cannot find enum module; tring to fix - running '{0}'".format(cmd);
+	os.system(cmd);
 	from enum import Enum;
-
-enableEmailStatistics=True;
-
 if (enableEmailStatistics):
 	import smtplib;
 	from email.mime.text import MIMEText;
-	sender="[YOUR ROBOT ACCOUNT]@gmail.com";
-	senderPassword="PASSWORD";
-	recipients=["PARENT1@live.com","PARENT2@gmail.com"];
-	smtpserver="smtp.gmail.com:587";
 
+
+
+
+# 
+# Enums for different modes
+#
 class Mode(Enum):
 	Training = 1
 	Precision = 2
 	TimeTrial = 3
 	SPARTA = 4	
 
-def getNumber(message):
-	while (True):
-		try:
-			result=int(raw_input(message));
-			return result;
-		except:
-			print "That is not a number";
+class MultiplicationMode(Enum):
+	Multiplication = 1
+	Division = 2
 
-def getNumberWithDefault(message,default):
-	while (True):
-		raw_result=raw_input(message+" [default={0}]".format(default));
-		if (raw_result==''):
-			return default;
-		try:
-			result=int(raw_result);
-			return result;
-		except:
-			print "That is not a number";
-	
+#
+# Static input helpers
+# 
 
-def getAnswer(message):
-	while (True):
-		result=raw_input(message);
-		if ('yes' in result):
-			return True;
-		elif ('no' in result):
-			return False;
-		else:
-			print "Please answer 'yes' or 'no'";
+class InputHelper:
+	@staticmethod
+	def getNumber(message):
+		while (True):
+			try:
+				result=int(raw_input(message));
+				return result;
+			except:
+				print "That is not a number";
 
-def getSelection(max):
-	while (True):
-		result=getNumber("Please eneter your choice: ")
-		if (result>0 and result<=max):
-			return result;
-		else:
-			print "Incorrect selection. Expecting a number [1...{0}]".format(max);
+	@staticmethod
+	def getNumberWithDefault(message,default):
+		while (True):
+			raw_result=raw_input(message+" [default={0}]".format(default));
+			if (raw_result==''):
+				return default;
+			try:
+				result=int(raw_result);
+				return result;
+			except:
+				print "That is not a number";
+		
 
-def sendEmail(result):
-	try:
-		sys.stdout.write("\nPlease wait - sending report to mom & dad...");
+	@staticmethod
+	def getBooleanAnswer(message):
+		while (True):
+			result=raw_input(message);
+			if ('yes' in result):
+				return True;
+			elif ('no' in result):
+				return False;
+			else:
+				print "Please answer 'yes' or 'no'";
+
+	@staticmethod
+	def getSelection(max):
+		while (True):
+			result=InputHelper.getNumber("Please eneter your choice: ")
+			if (result>0 and result<=max):
+				return result;
+			else:
+				print "Incorrect selection. Expecting a number [1...{0}]".format(max);
+	@staticmethod
+	def pause():
+		hush = raw_input("Press [ENTER] to end the session");
+
+	@staticmethod
+	def printNoCR(msg):
+		sys.stdout.write(msg);
 		sys.stdout.flush();
-	
-		server = smtplib.SMTP(smtpserver);
-		server.set_debuglevel(False);
-		server.ehlo();
-		server.starttls();
-		server.login(sender, senderPassword);
-		sys.stdout.write('.'); sys.stdout.flush();
+		
+
+#
+# Email helper
+# 
+class EmailHelper:
+	def __init__(self,sender,senderPassword,recipients,smtpserver):
+		self.sender=sender;
+		self.senderPassword=senderPassword;
+		self.recipients=recipients;
+		self.smtpserver=smtpserver;
+
+	def prepareMessage(self,result,mode):
 		msg = MIMEText(result,'plain');
-		msg['Subject'] = 'Multiplication report at {0}'.format(date);
-		msg['From'] = "'Multiplication Report' <{0}>".format(sender);  
-		msg['To'] = ",".join(recipients);
-		server.sendmail(sender,recipients, msg.as_string());
-		sys.stdout.write('.'); sys.stdout.flush();
-		server.quit();
-		print "done.\n";
-	except Exception as e:
-		print "\nError sending out email: {0}.".format(e);
+		msg['Subject'] = '{0} report at {1}'.format(datetime.now(),mode);
+		msg['From'] = "'{0} Report' <{1}>".format(self.sender,mode);  
+		msg['To'] = ",".join(self.recipients);
+		return msg;
+
+		
+
+		
+	
+	def sendEmail(self,result,mode):
+		try:
+			InputHelper.printNoCR("\nPlease wait - sending report to mom & dad...");
+		
+			server = smtplib.SMTP(self.smtpserver);
+			server.set_debuglevel(False);
+			server.ehlo();
+			server.starttls();
+			server.login(self.sender, self.senderPassword);
+
+			InputHelper.printNoCR('.'); 
+
+			msg = self.prepareMessage(result);
+			server.sendmail(self.sender,self.recipients, msg.as_string());
+
+			InputHelper.printNoCR('.'); 
+			
+			server.quit();
+			print "done.\n";
+
+		except Exception as e:
+			print "\nError sending out email: {0}.".format(e);
 		
 
 class Answer:
@@ -102,7 +157,7 @@ class Answer:
 			self.num2 = random.randrange(1,12);
 
 	def question(self):
-		if (self.mode):
+		if (self.mode == MultiplicationMode.Multiplication):
 			return "{0} X {1} = ".format(self.num1, self.num2);
 		else:
 			return "{0} / {1} = ".format(self.num1*self.num2, self.num1);
@@ -122,97 +177,135 @@ class Answer:
 
 	def askQuestion(self,i):
 		time = datetime.now();
-		self.answer = getNumber("Try #{0}: {1}".format(i,self.question()));
+		self.answer = InputHelper.getNumber("Try #{0}: {1}".format(i,self.question()));
 		self.timeTaken = datetime.now() - time;	
 
 	def isCorrect(self):
-		if (self.mode):
+		if (self.mode==MultiplicationMode.Multiplication):
 			return self.num1*self.num2==self.answer;
 		else:
 			return self.num2==self.answer;
 
+class Session:
+	def __init__(self):
+		random.seed();
+		self.stats = Stats();
+		self.mmode = MultiplicationMode.Multiplication;
+		if (enableEmailStatistics):
+			self.mailSender = EmailHelper(sender,senderPassword,recipients,smtpserver);
+		
+	def main(self):
+		self.askUserParameters();
+		self.run();
+		InputHelper.pause();
 
-random.seed();
+	def isTimeLimitEnabled(self):
+		return self.modeSelection == Mode.TimeTrial or self.modeSelection == Mode.SPARTA;
 
-right=0;
-wrong=0;
+	def isPrecisionModeEnabled(self):
+		return self.modeSelection == Mode.Precision or self.modeSelection == Mode.SPARTA;	
 
-prev1=0;
-prev2=0;
-feedback=True;
-errors=[];
-stats=[];
+	def getMode(self):
+		if (self.mmode == MultiplicationMode.Multiplication):
+			return "Multiplication";
+		return "Division";
 
-mmode = not getAnswer("Use division instead of multiplication? [yes|no] ");
+	def askUserParameters(self):
+		if InputHelper.getBooleanAnswer("Use division instead of multiplication? [yes|no] "):
+			self.mmode = MultiplicationMode.Division 
 
-tries = getNumberWithDefault("How many tries? [please neter number] ",100);
+		self.stats.tries = InputHelper.getNumberWithDefault("How many tries? [please neter number] ",self.stats.tries);
+		print "Please select mode:\n1: Training (no time limit, mistakes are allowed);\n2: Precision trial (no time limit, stop after first mistake);\n3: Time trial (time limit, mistakes are allowed);\n4: THIS IS SPARTA (time limit, stop after first error).\n";
+		self.modeSelection = Mode(InputHelper.getSelection(4));
 
-print "\
-Please select mode:\n\
-1: Training (no time limit, mistakes are allowed);\n\
-2: Precision trial (no time limit, stop after first mistake);\n\
-3: Time trial (time limit, mistakes are allowed);\n\
-4: THIS IS SPARTA (time limit, stop after first error).\n\
-";
-modeSelection = Mode(getSelection(4));
+		if (self.isTimeLimitEnabled()):
+			self.timeLimit = InputHelper.getNumberWithDefault("Time limit (seconds)", 180);
 
-if (modeSelection == Mode.TimeTrial or modeSelection == Mode.SPARTA):
-	timeLimit = getNumberWithDefault("Time limit (seconds)", 180);
-else:
-	timeLimit = -1;
+	def run (self):
+		prev1=0;
+		prev2=0;
 
-date = datetime.now();
+		self.stats.startTimer();
 
-for i in range(0,tries):
-	answer = Answer(prev1,prev2,mmode);
-	prev1=answer.num1;
-	prev2=answer.num2;
+		for i in range(0,self.stats.tries):
+			answer = Answer(prev1,prev2,self.mmode);
+			prev1=answer.num1;
+			prev2=answer.num2;
+			
+			answer.askQuestion(i+1);
+			
+			if (self.isTimeLimitEnabled()):
+				if (self.stats.isTimeLimitExceeded(self.timeLimit)):
+					print " Out of Time!{0}".format(" THIS IS SPARTA!!! " if self.modeSelection==Mode.SPARTA else "");
+					break;
+			
+			self.stats.append(answer);
+
+			if ((not answer.isCorrect()) and self.isPrecisionModeEnabled()):
+				break;
+
+		self.stats.stopTimer();
+
+		result = self.stats.getResults(self.getMode());	
+		print result;
+
+		if (enableEmailStatistics):
+			self.mailSender.sendEmail(result,self.getMode());
+
+class Stats:
+	def __init__(self):
+		self.right=0;
+		self.wrong=0;
+		self.errors=[];
+		self.stats=[];
+		self.tries=100;
+
+	def updateTimer(self):
+		self.elapsed = datetime.now() - self.date;
+
+	def startTimer(self):
+		self.date = datetime.now();
+		self.updateTimer();
+		self.timerRunning = True;
 	
-	answer.askQuestion(i+1);
-	
-	if (modeSelection==Mode.TimeTrial or modeSelection == Mode.SPARTA):
-		timeTaken = datetime.now()-date;
-		if (timeTaken.seconds>=timeLimit):
-			print " Out of Time!{0}".format(" THIS IS SPARTA!!! " if modeSelection==Mode.SPARTA else "");
-			break;
-	
-	if (answer.isCorrect()):
-		right=right+1;
-		if (feedback):
-			print " Correct!";
-	else:
-		wrong=wrong+1;
-		errors.append(answer);
-		if (feedback):
-			print " Incorrect!";
-		if (modeSelection==Mode.Precision or modeSelection==Mode.SPARTA):
-			break;
-	stats.append(answer);	
+	def stopTimer(self):
+		self.updateTimer();
+		self.timerRunning = False;
 
-finished = datetime.now();
-timeTaken = finished - date;
-slow = sorted(stats,key = lambda x: x.timeTaken, reverse=True)[:5];
+	def getElapsed(self):
+		if (self.timerRunning):
+			self.updateTimer();
+		return self.elapsed;
 
-result="\nMode: {10}\nDesired tries: {2}; Actual tries: {8} ({9}%)\nTime taken: {5} minutes {6} seconds ({7} seconds avg per try)\nWrong: {0} ({3}%)\nRight: {1} ({4}%)".format(
-	wrong,
-	right,
-	tries, 
-	wrong*100/(right+wrong) if (right+wrong>0) else 0,
-	right*100/(right+wrong) if (right+wrong>0) else 0,
-	timeTaken.seconds / 60,
-	timeTaken.seconds % 60,
-	timeTaken.seconds/tries,
-	right+wrong,
-	(right+wrong)*100/tries,
-	"Multiplication" if (mmode) else "Division");
+	def isTimeLimitExceeded(self,limit):
+		return self.getElapsed().seconds >= limit;
 
-result = result + "\n\nList of wrong answers:\n"+"\n".join(map(lambda result: "\t"+result.questionAnswerTiming(), errors));
-result = result + "\n\nList of slow answers:\n"+"\n".join(map(lambda result: "\t"+result.questionAnswerTimingCorrectness(), slow));
-print result;
+	def append(self,answer):
+		if (answer.isCorrect()):
+			self.right = self.right+1;
+		else:
+			self.wrong = self.wrong+1;
+			self.errors.append(answer);
+		self.stats.append(answer);
+			
+	def getResults(self, mode):
+		slow = sorted(self.stats,key = lambda x: x.timeTaken, reverse=True)[:5];
+		errors = filter(lambda x: not x.isCorrect(), self.stats);
+		total = len(self.stats);
+		wrong = len(errors); 
+		right = total - wrong;
 
-if (enableEmailStatistics):
-	sendEmail(result);
-
-hush = raw_input("Press [ENTER] to end the session");
+		result = "\nMode: {0}".format(mode);
+		result += "\nDesired attempts: {0}".format(self.tries);
+		result += "\nActual attempts: {0} ({1}%)".format(total, total*100/self.tries);
+		result += "\nTime Taken: {0} minutes {1} seconds ({2} seconds avg per try)".format(self.elapsed.seconds / 60, self.elapsed.seconds % 60, self.elapsed.seconds/total);
+		result += "\nRight: {0}({1}%)".format(right, right*100/total if (total>0) else 0);
+		result += "\nWrong: {0}({1}%)".format(wrong, wrong*100/total if (total>0) else 0);
+		result = result + "\n\nList of wrong answers:\n"+"\n".join(map(lambda result: "\t"+result.questionAnswerTiming(), errors));
+		result = result + "\n\nList of slow answers:\n"+"\n".join(map(lambda result: "\t"+result.questionAnswerTimingCorrectness(), slow));
+		return result;
 
 
+
+session = Session();
+session.main();
