@@ -62,8 +62,9 @@ class InputHelper:
 	@staticmethod
 	def getNumberWithDefault(message,default):
 		while (True):
-			raw_result=raw_input(message+" [default={0}]".format(default));
+			raw_result=raw_input(message+" [default={0}] ".format(default));
 			if (raw_result==''):
+				print "Using default={0}".format(default);
 				return default;
 			try:
 				result=int(raw_result);
@@ -80,6 +81,24 @@ class InputHelper:
 				return True;
 			elif ('no' in result):
 				return False;
+			else:
+				print "Please answer 'yes' or 'no'";
+
+	@staticmethod
+	def boolToYesNo(value):
+		return "yes" if value else "no";
+	
+	@staticmethod
+	def getBooleanAnswerWithDefault(message, default):
+		while (True):
+			result=raw_input(message+" [default={0}] ".format(InputHelper.boolToYesNo(default)));
+			if ('yes' in result):
+				return True;
+			elif ('no' in result):
+				return False;
+			elif (result == ''):
+				print "Using default={0}".format(InputHelper.boolToYesNo(default));
+				return default;
 			else:
 				print "Please answer 'yes' or 'no'";
 
@@ -211,7 +230,7 @@ class Session:
 		return "Division";
 
 	def askUserParameters(self):
-		if InputHelper.getBooleanAnswer("Use division instead of multiplication? [yes|no] "):
+		if InputHelper.getBooleanAnswerWithDefault("Use division instead of multiplication? [yes|no] ",False):
 			self.mmode = MultiplicationMode.Division 
 
 		self.stats.tries = InputHelper.getNumberWithDefault("How many tries? [please neter number] ",self.stats.tries);
@@ -254,9 +273,6 @@ class Session:
 
 class Stats:
 	def __init__(self):
-		self.right=0;
-		self.wrong=0;
-		self.errors=[];
 		self.stats=[];
 		self.tries=100;
 
@@ -281,11 +297,6 @@ class Stats:
 		return self.getElapsed().seconds >= limit;
 
 	def append(self,answer):
-		if (answer.isCorrect()):
-			self.right = self.right+1;
-		else:
-			self.wrong = self.wrong+1;
-			self.errors.append(answer);
 		self.stats.append(answer);
 			
 	def getResults(self, mode):
