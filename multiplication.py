@@ -105,7 +105,7 @@ class InputHelper:
 	@staticmethod
 	def getSelection(max):
 		while (True):
-			result=InputHelper.getNumber("Please eneter your choice: ")
+			result=InputHelper.getNumber("Please enter your choice: ")
 			if (result>0 and result<=max):
 				return result;
 			else:
@@ -233,7 +233,7 @@ class Session:
 		if InputHelper.getBooleanAnswerWithDefault("Use division instead of multiplication? [yes|no] ",False):
 			self.mmode = MultiplicationMode.Division 
 
-		self.stats.tries = InputHelper.getNumberWithDefault("How many tries? [please neter number] ",self.stats.tries);
+		self.stats.tries = InputHelper.getNumberWithDefault("How many tries? [please enter a number] ",self.stats.tries);
 		print "Please select mode:\n1: Training (no time limit, mistakes are allowed);\n2: Precision trial (no time limit, stop after first mistake);\n3: Time trial (time limit, mistakes are allowed);\n4: THIS IS SPARTA (time limit, stop after first error).\n";
 		self.modeSelection = Mode(InputHelper.getSelection(4));
 
