@@ -153,7 +153,7 @@ class EmailHelper:
 
 			InputHelper.printNoCR('.'); 
 
-			msg = self.prepareMessage(result);
+			msg = self.prepareMessage(result, mode);
 			server.sendmail(self.sender,self.recipients, msg.as_string());
 
 			InputHelper.printNoCR('.'); 
