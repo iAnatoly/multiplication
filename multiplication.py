@@ -312,8 +312,8 @@ class Stats:
 		result += "\nTime Taken: {0} minutes {1} seconds ({2} seconds avg per try)".format(self.elapsed.seconds / 60, self.elapsed.seconds % 60, self.elapsed.seconds/total);
 		result += "\nRight: {0}({1}%)".format(right, right*100/total if (total>0) else 0);
 		result += "\nWrong: {0}({1}%)".format(wrong, wrong*100/total if (total>0) else 0);
-		result = result + "\n\nList of wrong answers:\n"+"\n".join(map(lambda result: "\t"+result.questionAnswerTiming(), errors));
-		result = result + "\n\nList of slow answers:\n"+"\n".join(map(lambda result: "\t"+result.questionAnswerTimingCorrectness(), slow));
+		result += "\n\nList of wrong answers:\n"+"\n".join(map(lambda result: "\t"+result.questionAnswerTiming(), errors));
+		result += "\n\nList of slow answers:\n"+"\n".join(map(lambda result: "\t"+result.questionAnswerTimingCorrectness(), slow));
 		return result;
 
 
