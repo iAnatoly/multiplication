@@ -317,6 +317,6 @@ class Stats:
 		return result;
 
 
-
-session = Session();
-session.main();
+if __name__ == "__main__":
+	session = Session();
+	session.main();
