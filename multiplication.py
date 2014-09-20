@@ -132,8 +132,8 @@ class EmailHelper:
 
 	def prepareMessage(self,result,mode):
 		msg = MIMEText(result,'plain');
-		msg['Subject'] = '{0} report at {1}'.format(datetime.now(),mode);
-		msg['From'] = "'{0} Report' <{1}>".format(self.sender,mode);  
+		msg['Subject'] = '{0} report at {1}'.format(mode,datetime.now());
+		msg['From'] = "'{0} Report' <{1}>".format(mode,self.sender);  
 		msg['To'] = ",".join(self.recipients);
 		return msg;
 
