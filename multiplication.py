@@ -4,18 +4,13 @@
 # This script is free for use and redistribution in educational purposes.
 # See https://github.com/iAnatoly/multiplication/ for more info.
 #
-
-# configuration:
-enableEmailStatistics=True;
-if (enableEmailStatistics):
-	sender="[YOUR ROBOT ACCOUNT]@gmail.com";
-	senderPassword="PASSWORD";
-	recipients=["PARENT1@live.com","PARENT2@gmail.com"];
-	smtpserver="smtp.gmail.com:587";
-#
+# email notification configuration is defined in multiplication.config
 
 import random;
 import sys;
+import smtplib;
+import ConfigParser;
+from email.mime.text import MIMEText;
 from datetime import datetime;
 try:
 	from enum import Enum;
@@ -25,12 +20,6 @@ except:
 	print "Cannot find enum module; tring to fix - running '{0}'".format(cmd);
 	os.system(cmd);
 	from enum import Enum;
-if (enableEmailStatistics):
-	import smtplib;
-	from email.mime.text import MIMEText;
-
-
-
 
 # 
 # Enums for different modes
@@ -123,38 +112,62 @@ class InputHelper:
 #
 # Email helper
 # 
+class Config:
+	def __init__(self):
+		self.emailNotificationEnabled = False;
+		self.sender = '';
+		self.recipients = ''
+		self.smtpserver = 'smtp.gmail.com:587'
+		self.smtptls = True
+		self.smtpuser = ''
+		self.smtppassword = ''
+
+class ConfigHelper:
+	fileName = "multiplication.config"
+	@staticmethod
+	def getConfig():
+		config = Config();
+		try:
+			parser = ConfigParser.ConfigParser();
+			parser.read(ConfigHelper.fileName);
+
+			config.emailNotificationEnabled = parser.getboolean('EmailConfiguration','EmailNotificationEnabled');
+			config.smtpserver = parser.get('EmailConfiguration','SMTPServer');
+			config.smtptls = parser.getboolean('EmailConfiguration','SMTPTLS');
+			config.sender = parser.get('EmailConfiguration','sender');
+			config.recipients = parser.get('EmailConfiguration','recipients');
+			config.smtpuser = parser.get('EmailConfiguration','SMTPUser');
+			config.smtppassword = parser.get('EmailConfiguration','SMTPPassword');
+		except Exception as e:
+			print e;
+		return config;
+
 class EmailHelper:
-	def __init__(self,sender,senderPassword,recipients,smtpserver):
-		self.sender=sender;
-		self.senderPassword=senderPassword;
-		self.recipients=recipients;
-		self.smtpserver=smtpserver;
+	def __init__(self,config):
+		self.config = config
 
 	def prepareMessage(self,result,mode):
 		msg = MIMEText(result,'plain');
 		msg['Subject'] = '{0} report at {1}'.format(mode,datetime.now());
-		msg['From'] = "'{0} Report' <{1}>".format(mode,self.sender);  
-		msg['To'] = ",".join(self.recipients);
+		msg['From'] = "'{0} Report' <{1}>".format(mode,self.config.sender);  
+		msg['To'] = self.config.recipients;
 		return msg;
 
-		
-
-		
-	
 	def sendEmail(self,result,mode):
 		try:
 			InputHelper.printNoCR("\nPlease wait - sending report to mom & dad...");
 		
-			server = smtplib.SMTP(self.smtpserver);
+			server = smtplib.SMTP(self.config.smtpserver);
 			server.set_debuglevel(False);
 			server.ehlo();
-			server.starttls();
-			server.login(self.sender, self.senderPassword);
+			if self.config.smtptls:
+				server.starttls();
+			server.login(self.config.smtpuser, self.config.smtppassword);
 
 			InputHelper.printNoCR('.'); 
 
 			msg = self.prepareMessage(result, mode);
-			server.sendmail(self.sender,self.recipients, msg.as_string());
+			server.sendmail(self.config.sender,self.config.recipients, msg.as_string());
 
 			InputHelper.printNoCR('.'); 
 			
@@ -217,8 +230,6 @@ class Session:
 		random.seed();
 		self.stats = Stats();
 		self.mmode = MultiplicationMode.Multiplication;
-		if (enableEmailStatistics):
-			self.mailSender = EmailHelper(sender,senderPassword,recipients,smtpserver);
 		
 	def main(self):
 		self.askUserParameters();
@@ -275,8 +286,15 @@ class Session:
 		result = self.stats.getResults(self.getMode());	
 		print result;
 
-		if (enableEmailStatistics):
-			self.mailSender.sendEmail(result,self.getMode());
+		try:
+			mailConfig = ConfigHelper.getConfig();
+			if (mailConfig.emailNotificationEnabled):
+				mailSender = EmailHelper(mailConfig);
+				mailSender.sendEmail(result,self.getMode());
+			else:
+				print "Email notification is disabled. Please edit {0} file to enable it.".format(ConfigHelper.fileName);
+		except Exception as e:
+			print "Email notification is skipped due to an error {1} or absence of configuration. Please check {0} file.".format(ConfigHelper.fileName, e);	
 
 class Stats:
 	def __init__(self):

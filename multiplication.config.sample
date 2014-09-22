@@ -1,0 +1,8 @@
+[EmailConfiguration]
+emailnotificationenabled: True
+sender: YOUR_EMAIL_ACCOUNT@gmail.com
+recipients: PARENT_1@gmail.com; PARENT_2@gmail.com
+smtpserver: smtp.gmail.com:587
+smtptls: True
+smtpuser: YOUR_EMAIL_ACCOUNT@gmail.com
+smtppassword: YOUR_EMAIL_ACCOUNT_PASSWORD
