@@ -188,11 +188,18 @@ class Answer:
 	def questionAnswerTiming(self):
 		return "{0}; time taken: {1}.{2}s".format(self.questionAnswer(),self.timeTaken.seconds,self.timeTaken.microseconds/10000);
 	
+	def getCorrectnessMessage(self):
+		return "Correct" if self.isCorrect() else "Incorrect";
+
 	def questionAnswerTimingCorrectness(self):
-		return "{0} ({1})".format(self.questionAnswerTiming(),"correct" if self.isCorrect() else "WRONG");
+		return "{0} ({1})".format(self.questionAnswerTiming(),self.getCorrectnessMessage());
 
 	def isRepeating(self,prev1,prev2):
 		return (self.num1==prev1 or self.num2==prev2 or self.num1==prev2 or self.num2==prev1);
+
+	def askQuestionWithFeedback(self,i):
+		self.askQuestion(i);
+		print "\t"+self.getCorrectnessMessage();
 
 	def askQuestion(self,i):
 		time = datetime.now();
@@ -251,8 +258,8 @@ class Session:
 			prev1=answer.num1;
 			prev2=answer.num2;
 			
-			answer.askQuestion(i+1);
-			
+			answer.askQuestionWithFeedback(i+1);
+
 			if (self.isTimeLimitEnabled()):
 				if (self.stats.isTimeLimitExceeded(self.timeLimit)):
 					print " Out of Time!{0}".format(" THIS IS SPARTA!!! " if self.modeSelection==Mode.SPARTA else "");
