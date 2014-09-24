@@ -7,6 +7,7 @@
 # email notification configuration is defined in multiplication.config
 
 import random;
+import os;
 import sys;
 import smtplib;
 import ConfigParser;
@@ -15,7 +16,6 @@ from datetime import datetime;
 try:
 	from enum import Enum;
 except:
-	import os;
 	cmd = "sudo pip install enum34";
 	print "Cannot find enum module; tring to fix - running '{0}'".format(cmd);
 	os.system(cmd);
@@ -123,13 +123,16 @@ class Config:
 		self.smtppassword = ''
 
 class ConfigHelper:
-	fileName = "multiplication.config"
+	@staticmethod
+	def getFileName():
+		return os.path.dirname(__file__)+"/multiplication.config";
 	@staticmethod
 	def getConfig():
 		config = Config();
 		try:
+			
 			parser = ConfigParser.ConfigParser();
-			parser.read(ConfigHelper.fileName);
+			parser.read(ConfigHelper.getFileName());
 
 			config.emailNotificationEnabled = parser.getboolean('EmailConfiguration','EmailNotificationEnabled');
 			config.smtpserver = parser.get('EmailConfiguration','SMTPServer');
@@ -292,9 +295,9 @@ class Session:
 				mailSender = EmailHelper(mailConfig);
 				mailSender.sendEmail(result,self.getMode());
 			else:
-				print "Email notification is disabled. Please edit {0} file to enable it.".format(ConfigHelper.fileName);
+				print "Email notification is disabled. Please edit {0} file to enable it.".format(ConfigHelper.getFileName());
 		except Exception as e:
-			print "Email notification is skipped due to an error {1} or absence of configuration. Please check {0} file.".format(ConfigHelper.fileName, e);	
+			print "Email notification is skipped due to an error {1} or absence of configuration. Please check {0} file.".format(ConfigHelper.getFileName(), e);	
 
 class Stats:
 	def __init__(self):
