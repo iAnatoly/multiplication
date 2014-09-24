@@ -19,9 +19,9 @@ Right now, the scrip supports mutiplication and division, and has 4 modes of ope
 
 The script relies on several python modules:
 - smtplib and MIMEText, for sending the statistics over the email;
-- enum (or enum34, for python 2.x) - sorry, I cannot use a language without enums. If installing enum is a problem, you can go ahead and rewrite it without enums - it is a 2 minute job. It is just a very bad karma to do so.
+- enum (or enum34, for python 2.x) - sorry, I cannot use a language without enums. 
 
-Sending stats over email is disabled by defult, go ahead and correct enable it (the configuration parameters are in the first 10 lines of code).
+Sending stats over email is disabled by defult, go ahead and correct enable it by editing multiplication.config file (I moved it to a separate file to simplify the updates).
 
 Enjoy, and good luck.
 
