@@ -337,7 +337,7 @@ class Stats:
 		result = "\nMode: {0}".format(mode);
 		result += "\nDesired attempts: {0}".format(self.tries);
 		result += "\nActual attempts: {0} ({1}%)".format(total, total*100/self.tries);
-		result += "\nTime Taken: {0} minutes {1} seconds ({2} seconds avg per try)".format(self.elapsed.seconds / 60, self.elapsed.seconds % 60, self.elapsed.seconds/total);
+		result += "\nTime Taken: {0} minutes {1} seconds ({2} seconds avg per try)".format(self.elapsed.seconds / 60, self.elapsed.seconds % 60, self.elapsed.seconds*1.0/total);
 		result += "\nRight: {0}({1}%)".format(right, right*100/total if (total>0) else 0);
 		result += "\nWrong: {0}({1}%)".format(wrong, wrong*100/total if (total>0) else 0);
 		result += "\n\nList of wrong answers:\n"+"\n".join(map(lambda result: "\t"+result.questionAnswerTiming(), errors));
