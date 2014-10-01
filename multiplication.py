@@ -170,7 +170,8 @@ class EmailHelper:
 			InputHelper.printNoCR('.'); 
 
 			msg = self.prepareMessage(result, mode);
-			server.sendmail(self.config.sender,self.config.recipients, msg.as_string());
+			recipients = map(lambda i: i.strip(), self.config.recipients.split(";"));
+			server.sendmail(self.config.sender,recipients, msg.as_string());
 
 			InputHelper.printNoCR('.'); 
 			
