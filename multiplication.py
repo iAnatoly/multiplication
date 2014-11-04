@@ -107,7 +107,7 @@ class InputHelper:
 	@staticmethod
 	def getSelectionWithDefault(max,default):
 		while (True):
-			result=InputHelper.getNumberWithDefault("Please enter your choice [default={0}]: ".format(default),default)
+			result=InputHelper.getNumberWithDefault("Please enter your choice ",default)
 			if (result>0 and result<=max):
 				return result;
 			else:
@@ -198,12 +198,19 @@ class EmailHelper:
 class Answer:
 	def __init__(self,prev1,prev2,mode):
 		self.mode = mode;
+		if (self.mode == MultiplicationMode.Multiplication or self.mode == MultiplicationMode.Division):
+			upperLimit1 = 13;
+			lowerLimit = 1;
+		else:
+			upperLimit1 = 20;
+			lowerLimit = 2;
+		upperLimit2 = 12;
 		self.num1 = prev1;
 		self.num2 = prev2;
 		self.answer = 0;
 		while (self.isRepeating(prev1,prev2)):
-			self.num1 = random.randrange(1,13);
-			self.num2 = random.randrange(1,12);
+			self.num1 = random.randrange(lowerLimit,upperLimit1);
+			self.num2 = random.randrange(lowerLimit,upperLimit2);
 
 	def question(self):
 		if (self.mode == MultiplicationMode.Multiplication):
