@@ -1,6 +1,5 @@
 #!/usr/bin/python
 #
-# (C) Copyright Anatoly Ivanov <anatoly.ivanov@gmail.com>
 # This script is free for use and redistribution in educational purposes.
 # See https://github.com/iAnatoly/multiplication/ for more info.
 #
@@ -10,6 +9,7 @@ import random;
 import os;
 import sys;
 import smtplib;
+import math;
 import ConfigParser;
 from email.mime.text import MIMEText;
 from datetime import datetime;
@@ -33,6 +33,10 @@ class Mode(Enum):
 class MultiplicationMode(Enum):
 	Multiplication = 1
 	Division = 2
+	Square = 3
+	PowerOfTwo = 4
+	SquareRoot = 5
+	LogOfTwo = 6
 
 #
 # Static input helpers
@@ -95,6 +99,15 @@ class InputHelper:
 	def getSelection(max):
 		while (True):
 			result=InputHelper.getNumber("Please enter your choice: ")
+			if (result>0 and result<=max):
+				return result;
+			else:
+				print "Incorrect selection. Expecting a number [1...{0}]".format(max);
+	
+	@staticmethod
+	def getSelectionWithDefault(max,default):
+		while (True):
+			result=InputHelper.getNumberWithDefault("Please enter your choice [default={0}]: ".format(default),default)
 			if (result>0 and result<=max):
 				return result;
 			else:
@@ -195,8 +208,19 @@ class Answer:
 	def question(self):
 		if (self.mode == MultiplicationMode.Multiplication):
 			return "{0} X {1} = ".format(self.num1, self.num2);
-		else:
+		elif (self.mode == MultiplicationMode.Division):
 			return "{0} / {1} = ".format(self.num1*self.num2, self.num1);
+		elif (self.mode == MultiplicationMode.Square):
+			return "{0} ^2 = ".format(self.num1);
+		elif (self.mode == MultiplicationMode.SquareRoot):
+			return "X^2 = {0}; X=".format(self.num1*self.num1);
+		elif (self.mode == MultiplicationMode.PowerOfTwo):
+			return "2^ {0} = ".format(self.num1);
+		elif (self.mode == MultiplicationMode.LogOfTwo):
+			return "2^X = {0}; X=".format(pow(2,self.num1));
+		else:
+			raise Exception('unknown mode');
+
 			
 	
 	def questionAnswer(self):
@@ -226,8 +250,18 @@ class Answer:
 	def isCorrect(self):
 		if (self.mode==MultiplicationMode.Multiplication):
 			return self.num1*self.num2==self.answer;
-		else:
+		elif (self.mode == MultiplicationMode.Division):
 			return self.num2==self.answer;
+		elif (self.mode == MultiplicationMode.Square):
+			return self.num1*self.num1==self.answer;
+		elif (self.mode == MultiplicationMode.SquareRoot):
+			return self.num1==self.answer;
+		elif (self.mode == MultiplicationMode.PowerOfTwo):
+			return pow(2,self.num1)==self.answer;
+		elif (self.mode == MultiplicationMode.LogOfTwo):
+			return self.num1==self.answer;
+		else:
+			raise Exception('unknown mode');
 
 class Session:
 	def __init__(self):
@@ -247,17 +281,15 @@ class Session:
 		return self.modeSelection == Mode.Precision or self.modeSelection == Mode.SPARTA;	
 
 	def getMode(self):
-		if (self.mmode == MultiplicationMode.Multiplication):
-			return "Multiplication";
-		return "Division";
+		return "{0}".format(self.mmode);
 
 	def askUserParameters(self):
-		if InputHelper.getBooleanAnswerWithDefault("Use division instead of multiplication? [yes|no] ",False):
-			self.mmode = MultiplicationMode.Division 
+		print "Please select excercise:\n1: Multiplication;\n2: Division;\n3: Quadrat;\n4: Power of 2\n5: Square root;\n6: Log of 2.\n";
+		self.mmode = MultiplicationMode(InputHelper.getSelectionWithDefault(6,1));
 
 		self.stats.tries = InputHelper.getNumberWithDefault("How many tries? [please enter a number] ",self.stats.tries);
 		print "Please select mode:\n1: Training (no time limit, mistakes are allowed);\n2: Precision trial (no time limit, stop after first mistake);\n3: Time trial (time limit, mistakes are allowed);\n4: THIS IS SPARTA (time limit, stop after first error).\n";
-		self.modeSelection = Mode(InputHelper.getSelection(4));
+		self.modeSelection = Mode(InputHelper.getSelectionWithDefault(4,1));
 
 		if (self.isTimeLimitEnabled()):
 			self.timeLimit = InputHelper.getNumberWithDefault("Time limit (seconds)", 180);
